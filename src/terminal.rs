@@ -2,32 +2,18 @@ use std::io::{self, stdout};
 use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
-
-pub struct Size {
-    pub width: u16,
-    pub height: u16,
-}
+use crate::tree_drawable::{Size, TreeDrawable};
 
 pub struct Terminal {
     size: Size,
     _stdout: RawTerminal<io::Stdout>,
 }
 
-impl Terminal {
-    pub fn default() -> Result<Self, io::Error> {
-        let size = termion::terminal_size()?;
-        Ok(Self {
-            size: Size {
-                width: size.0,
-                height: size.1.saturating_sub(1),
-            },
-            _stdout: stdout().into_raw_mode().unwrap(),
-        })
-    }
-    pub fn size(&self) -> &Size {
+impl TreeDrawable for Terminal {
+    fn size(&self) -> &Size {
         &self.size
     }
-    pub fn draw_tree(&mut self, trees: &Vec<Vec<u8>>) {
+    fn draw_tree(&mut self, trees: &Vec<Vec<u8>>) {
         Self::cursor_hide();
         Self::cursor_position(1, 1);
         self.clear_screen();
@@ -40,10 +26,10 @@ impl Terminal {
             println!("{}\r", str);
         }
     }
-    pub fn clear_screen(&self) {
+    fn clear_screen(&self) {
         print!("{}", termion::clear::All);
     }
-    pub fn check_finish(&self) -> bool {
+    fn check_finish(&self) -> bool {
         loop {
             if let Some(key) = io::stdin().lock().keys().next() {
                 if key.unwrap() == Key::Ctrl('q') {
@@ -52,6 +38,19 @@ impl Terminal {
                 return false;
             }
         }
+    }
+}
+
+impl Terminal {
+    pub fn default() -> Result<Self, io::Error> {
+        let size = termion::terminal_size()?;
+        Ok(Self {
+            size: Size {
+                width: size.0,
+                height: size.1.saturating_sub(1),
+            },
+            _stdout: stdout().into_raw_mode().unwrap(),
+        })
     }
     fn cursor_hide() {
         print!("{}", termion::cursor::Hide);

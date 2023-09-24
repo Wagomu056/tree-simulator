@@ -1,14 +1,12 @@
-use crate::Terminal;
+use crate::tree_drawable::TreeDrawable;
 
-pub struct TreeSimulator {
+pub struct TreeSimulator<T: TreeDrawable> {
     trees: Vec<Vec<u8>>,
-    tree_drawable: Terminal,
+    tree_drawable: T,
 }
 
-impl TreeSimulator {
-    pub fn default() -> Self {
-        let tree_drawable = Terminal::default().expect("Failed to initialize");
-
+impl <T: TreeDrawable> TreeSimulator<T> {
+    pub fn default(tree_drawable: T) -> Self {
         let draw_size = tree_drawable.size();
         let column_count = draw_size.width as usize;
         let row_count = draw_size.height as usize;
