@@ -1,11 +1,5 @@
 use crate::Terminal;
 
-#[derive(Default)]
-pub struct Position {
-    pub x: usize,
-    pub y: usize,
-}
-
 pub struct TreeSimulator {
     trees: Vec<Vec<u8>>,
     tree_drawable: Terminal,
@@ -33,13 +27,15 @@ impl TreeSimulator {
     }
 
     pub fn run(&mut self) {
-        for number in 0..=10 {
-            self.draw();
-        }
-    }
+        loop {
+            self.tree_drawable.draw_tree(&self.trees);
 
-    fn draw(&self) {
-        self.tree_drawable.draw_tree(&self.trees);
+            if self.tree_drawable.check_finish() {
+                break;
+            }
+        }
+
+        self.tree_drawable.clear_screen();
     }
 }
 
