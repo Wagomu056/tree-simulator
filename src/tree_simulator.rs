@@ -8,7 +8,7 @@ pub struct Position {
 
 pub struct TreeSimulator {
     trees: Vec<Vec<u8>>,
-    _tree_drawable: Terminal,
+    tree_drawable: Terminal,
 }
 
 impl TreeSimulator {
@@ -20,15 +20,26 @@ impl TreeSimulator {
         let row_count = draw_size.height as usize;
 
         println!("initialize trees data [{}][{}]", column_count, row_count);
-        let trees: Vec<Vec<u8>> = vec![vec![0; column_count]; row_count];
+        let mut trees: Vec<Vec<u8>> = vec![vec![0; column_count]; row_count];
+        for row in &mut trees {
+            for chara in row {
+                *chara = 1;
+            }
+        }
         Self {
             trees,
-            _tree_drawable: tree_drawable,
+            tree_drawable,
         }
     }
 
-    pub fn get_trees(&self) -> &Vec<Vec<u8>> {
-        &self.trees
+    pub fn run(&mut self) {
+        for number in 0..=10 {
+            self.draw();
+        }
+    }
+
+    fn draw(&self) {
+        self.tree_drawable.draw_tree(&self.trees);
     }
 }
 
