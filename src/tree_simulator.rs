@@ -1,3 +1,5 @@
+use std::thread::sleep;
+use std::time::Duration;
 use crate::tree_drawable::TreeDrawable;
 
 pub struct TreeSimulator<T: TreeDrawable> {
@@ -27,10 +29,11 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         loop {
             self.tree_drawable.draw_tree(&self.trees);
 
-            if self.tree_drawable.check_finish() {
-                break;
+            for row in &mut self.trees {
+                for ch in row {
+                    *ch = (*ch + 1) % 10;
+                }
             }
-        }
 
             sleep(Duration::from_millis(500));
         }
