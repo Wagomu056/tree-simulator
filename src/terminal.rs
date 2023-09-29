@@ -16,9 +16,10 @@ impl TreeDrawable for Terminal {
     fn draw_tree(&mut self, trees: &Vec<Vec<u8>>) {
         Self::cursor_hide();
         Self::cursor_position(1, 1);
-        self.clear_screen();
 
         for row in trees {
+            Self::clear_current_line();
+
             let mut str: String = String::from("");
             for chara in row {
                 str += &*chara.to_string();
@@ -57,5 +58,8 @@ impl Terminal {
     }
     fn cursor_position(x: u16, y: u16) {
         print!("{}", termion::cursor::Goto(x, y));
+    }
+    fn clear_current_line() {
+        print!("{}", termion::clear::CurrentLine);
     }
 }
