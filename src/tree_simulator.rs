@@ -2,8 +2,6 @@ use crate::tree_drawable::TreeDrawable;
 
 pub struct TreeSimulator<T: TreeDrawable> {
     trees: Vec<Vec<u8>>,
-    column_count: usize,
-    row_count: usize,
     tree_drawable: T,
 }
 
@@ -22,8 +20,6 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         }
         Self {
             trees,
-            column_count,
-            row_count,
             tree_drawable,
         }
     }
@@ -36,13 +32,8 @@ impl<T: TreeDrawable> TreeSimulator<T> {
             }
         }
 
-        self.tree_drawable.clear_screen();
-    }
-    pub fn get_column_count(&self) -> usize {
-        self.column_count
-    }
-    pub fn get_row_count(&self) -> usize {
-        self.row_count
+            sleep(Duration::from_millis(500));
+        }
     }
 }
 
@@ -77,7 +68,9 @@ mod tests {
             }
         );
         let simulator = TreeSimulator::default(drawable);
-        assert_eq!(simulator.get_column_count(), 3);
-        assert_eq!(simulator.get_row_count(), 5);
+        // width
+        assert_eq!(simulator.trees[0].len(), 3);
+        // height
+        assert_eq!(simulator.trees.len(), 5);
     }
 }
