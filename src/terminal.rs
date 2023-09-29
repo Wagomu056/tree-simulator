@@ -9,7 +9,7 @@ impl TreeDrawable for Terminal {
     fn size(&self) -> &Size {
         &self.size
     }
-    fn draw_tree(&mut self, trees: &Vec<Vec<u8>>) {
+    fn draw_tree(&self, trees: &Vec<Vec<u8>>) {
         Self::cursor_hide();
         Self::cursor_position(1, 1);
 

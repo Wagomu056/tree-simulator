@@ -51,7 +51,7 @@ mod tests {
 
     impl TreeDrawable for MockDrawable {
         fn size(&self) -> &Size { &self.size }
-        fn draw_tree(&mut self, _trees: &Vec<Vec<u8>>) { todo!() }
+        fn draw_tree(&self, _trees: &Vec<Vec<u8>>) { todo!() }
     }
 
     impl MockDrawable {
