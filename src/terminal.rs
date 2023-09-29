@@ -1,12 +1,8 @@
-use std::io::{self, stdout};
-use termion::event::Key;
-use termion::input::TermRead;
-use termion::raw::{IntoRawMode, RawTerminal};
+use std::io::{self};
 use crate::tree_drawable::{Size, TreeDrawable};
 
 pub struct Terminal {
     size: Size,
-    _stdout: RawTerminal<io::Stdout>,
 }
 
 impl TreeDrawable for Terminal {
@@ -27,19 +23,6 @@ impl TreeDrawable for Terminal {
             println!("{}\r", str);
         }
     }
-    fn clear_screen(&self) {
-        print!("{}", termion::clear::All);
-    }
-    fn check_finish(&self) -> bool {
-        loop {
-            if let Some(key) = io::stdin().lock().keys().next() {
-                if key.unwrap() == Key::Ctrl('q') {
-                    return true;
-                }
-                return false;
-            }
-        }
-    }
 }
 
 impl Terminal {
@@ -50,7 +33,6 @@ impl Terminal {
                 width: size.0,
                 height: size.1.saturating_sub(1),
             },
-            _stdout: stdout().into_raw_mode().unwrap(),
         })
     }
     fn cursor_hide() {
