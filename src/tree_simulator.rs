@@ -101,6 +101,18 @@ mod tests {
         }
     }
 
+    fn get_tree_count(sim: &TreeSimulator<MockDrawable>) -> i32 {
+        let mut tree_count = 0;
+        for row in &sim.trees {
+            for elem in row {
+                if *elem == TreeType::Tree {
+                    tree_count += 1;
+                }
+            }
+        }
+        tree_count
+    }
+
     #[test]
     fn if_tree_size_eq_drawable_size() {
         let drawable = MockDrawable::default(
@@ -123,14 +135,7 @@ mod tests {
         let mut sim = TreeSimulator::default(drawable);
 
         // first, there is no tree
-        let mut tree_count = 0;
-        for row in &sim.trees {
-            for elem in row {
-                if *elem == TreeType::Tree {
-                    tree_count += 1;
-                }
-            }
-        }
+        let tree_count = get_tree_count(&sim);
         assert_eq!(tree_count, 0);
 
         // update few times
@@ -139,14 +144,7 @@ mod tests {
         sim.update();
 
         // then one tree grown
-        let mut tree_count = 0;
-        for row in &sim.trees {
-            for elem in row {
-                if *elem == TreeType::Tree {
-                    tree_count += 1;
-                }
-            }
-        }
+        let tree_count = get_tree_count(&sim);
         assert_eq!(tree_count, 1);
     }
 }
