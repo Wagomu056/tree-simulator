@@ -45,11 +45,11 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
 
     fn update(&mut self) {
-        self.update_trees();
+        self.update_grow_trees();
         self.tree_drawable.draw_tree(&self.trees);
     }
 
-    fn update_trees(&mut self) {
+    fn update_grow_trees(&mut self) {
         self.to_grow_count -= 1;
         if self.to_grow_count > 0 {
             return;
