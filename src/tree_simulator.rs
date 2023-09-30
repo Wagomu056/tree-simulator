@@ -22,7 +22,8 @@ pub struct TreeSimulator<T: TreeDrawable> {
 }
 
 impl<T: TreeDrawable> TreeSimulator<T> {
-    const TREE_GROW_INTERVAL: u8 = 3;
+    const TREE_GROW_INTERVAL: u8 = 5;
+    const TREE_INCREASE_INTERVAL: u8 = 3;
 
     pub fn default(tree_drawable: T) -> Self {
         let draw_size = tree_drawable.size();
@@ -139,9 +140,9 @@ mod tests {
         assert_eq!(tree_count, 0);
 
         // update few times
-        sim.update();
-        sim.update();
-        sim.update();
+        for _num in 0..TreeSimulator::<MockDrawable>::TREE_GROW_INTERVAL {
+            sim.update();
+        }
 
         // then one tree grown
         let tree_count = get_tree_count(&sim);
