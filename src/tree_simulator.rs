@@ -45,7 +45,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
             trees,
             increase_counts,
             tree_drawable,
-            to_grow_count: Self::TREE_GROW_INTERVAL,
+            to_grow_count: Self::TREE_GROW_INTERVAL / 3,
         }
     }
 
@@ -57,17 +57,20 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
 
     fn update(&mut self) {
-        self.update_increase_trees();
-        self.update_grow_trees();
-        self.update_fire_spread();
-        self.take_fire_at_random();
-        self.tree_drawable.draw_tree(&self.trees);
+        let is_increase = self.update_increase_trees();
+        let is_grown = self.update_grow_trees();
+        let is_spread = self.update_fire_spread();
+        let is_fire = self.take_fire_at_random();
+
+        if is_increase || is_grown || is_spread || is_fire {
+            self.tree_drawable.draw_tree(&self.trees);
+        }
     }
 
-    fn update_grow_trees(&mut self) {
+    fn update_grow_trees(&mut self) -> bool {
         self.to_grow_count -= 1;
         if self.to_grow_count > 0 {
-            return;
+            return false;
         }
 
         self.to_grow_count = Self::TREE_GROW_INTERVAL;
@@ -76,9 +79,11 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         let rand
             = rand::thread_rng().gen_range(0..nones.len());
         self.set_tree_type(&nones[rand], TreeType::Tree);
+        return true;
     }
 
-    fn update_increase_trees(&mut self) {
+    fn update_increase_trees(&mut self) -> bool {
+        let mut is_dirty = false;
         let tree_positions = self.search_positions(TreeType::Tree);
         for pos in tree_positions {
             if let Some(row) = self.increase_counts.get_mut(pos.y) {
@@ -89,29 +94,33 @@ impl<T: TreeDrawable> TreeSimulator<T> {
 
                         if let Some(around_pos) = self.search_around_none_pos(pos.x, pos.y) {
                             self.set_tree_type(&around_pos, TreeType::Tree);
+                            is_dirty = true;
                         }
                     }
                 }
             }
         }
+        is_dirty
     }
 
-    fn take_fire_at_random(&mut self) {
+    fn take_fire_at_random(&mut self) -> bool {
         let random: f64 = random();
         if random > Self::TAKE_FIRE_RATIO {
-            return;
+            return false;
         }
 
         let trees = self.search_positions(TreeType::Tree);
         if trees.len() == 0 {
-            return;
+            return false;
         }
 
         let rnd_idx = rand::thread_rng().gen_range(0..trees.len());
         self.set_tree_type(&trees[rnd_idx], TreeType::Fire);
+        return true;
     }
 
-    fn update_fire_spread(&mut self) {
+    fn update_fire_spread(&mut self) -> bool {
+        let mut is_dirty = false;
         let fires = self.search_positions(TreeType::Fire);
         for pos in fires {
             let count = self.increase_counts[pos.y][pos.x];
@@ -119,13 +128,16 @@ impl<T: TreeDrawable> TreeSimulator<T> {
                 let trees = self.search_around_tree_pos(&pos);
                 for pos in trees {
                     self.set_tree_type(&pos, TreeType::Fire);
+                    is_dirty = true;
                 }
             } else if count == 0 {
                 self.set_tree_type(&pos, TreeType::None);
+                is_dirty = true;
             }
 
             self.increase_counts[pos.y][pos.x] -= 1;
         }
+        is_dirty
     }
 
     fn search_around_none_pos(&self, x: usize, y: usize) -> Option<Pos> {
