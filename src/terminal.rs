@@ -1,5 +1,6 @@
 use std::io::{self};
 use crate::tree_drawable::{Size, TreeDrawable};
+use crate::tree_simulator::TreeType;
 
 pub struct Terminal {
     size: Size,
@@ -9,7 +10,7 @@ impl TreeDrawable for Terminal {
     fn size(&self) -> &Size {
         &self.size
     }
-    fn draw_tree(&self, trees: &Vec<Vec<u8>>) {
+    fn draw_tree(&self, trees: &Vec<Vec<TreeType>>) {
         Self::cursor_hide();
         Self::cursor_position(1, 1);
 
@@ -18,7 +19,16 @@ impl TreeDrawable for Terminal {
 
             let mut str: String = String::from("");
             for chara in row {
-                str += &*chara.to_string();
+                match chara {
+                    TreeType::None => {}
+                    TreeType::Tree => {
+                        str += "△";
+                    }
+                    TreeType::Fire => {
+                        str += "*";
+                    }
+                }
+                //str += &*chara.to_string();
             }
             println!("{}\r", str);
         }

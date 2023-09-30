@@ -2,8 +2,15 @@ use std::thread::sleep;
 use std::time::Duration;
 use crate::tree_drawable::TreeDrawable;
 
+#[derive(Clone)]
+pub enum TreeType {
+    None,
+    Tree,
+    Fire,
+}
+
 pub struct TreeSimulator<T: TreeDrawable> {
-    trees: Vec<Vec<u8>>,
+    trees: Vec<Vec<TreeType>>,
     tree_drawable: T,
 }
 
@@ -14,12 +21,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         let row_count = draw_size.height as usize;
 
         println!("initialize trees data [{}][{}]", column_count, row_count);
-        let mut trees: Vec<Vec<u8>> = vec![vec![0; column_count]; row_count];
-        for row in &mut trees {
-            for chara in row {
-                *chara = 1;
-            }
-        }
+        let mut trees: Vec<Vec<TreeType>> = vec![vec![TreeType::None; column_count]; row_count];
         Self {
             trees,
             tree_drawable,
@@ -27,16 +29,19 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
     pub fn run(&mut self) {
         loop {
-            self.tree_drawable.draw_tree(&self.trees);
-
-            for row in &mut self.trees {
-                for ch in row {
-                    *ch = (*ch + 1) % 10;
-                }
-            }
-
+            self.update();
             sleep(Duration::from_millis(500));
         }
+    }
+
+    fn update(&mut self) {
+        for row in &mut self.trees {
+            for ch in row {
+                //*ch = (*ch + 1) % 10;
+            }
+        }
+
+        self.tree_drawable.draw_tree(&self.trees);
     }
 }
 
@@ -51,7 +56,7 @@ mod tests {
 
     impl TreeDrawable for MockDrawable {
         fn size(&self) -> &Size { &self.size }
-        fn draw_tree(&self, _trees: &Vec<Vec<u8>>) { todo!() }
+        fn draw_tree(&self, _trees: &Vec<Vec<TreeType>>) {}
     }
 
     impl MockDrawable {

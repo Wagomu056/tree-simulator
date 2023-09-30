@@ -1,3 +1,4 @@
+use crate::tree_simulator::TreeType;
 
 pub struct Size {
     pub width: u16,
@@ -6,5 +7,5 @@ pub struct Size {
 
 pub trait TreeDrawable {
     fn size(&self) -> &Size;
-    fn draw_tree(&self, trees: &Vec<Vec<u8>>);
+    fn draw_tree(&self, trees: &Vec<Vec<TreeType>>);
 }
