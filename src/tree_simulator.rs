@@ -25,11 +25,11 @@ pub struct TreeSimulator<T: TreeDrawable> {
 // release parameters
 #[cfg(not(test))]
 impl<T: TreeDrawable> TreeSimulator<T> {
-    const TREE_GROW_INTERVAL: u8 = 5;
-    const TREE_INCREASE_INTERVAL_MIN: i8 = 3;
-    const TREE_INCREASE_INTERVAL_MAX: i8 = 10;
+    const TREE_GROW_INTERVAL: u8 = 25;
+    const TREE_INCREASE_INTERVAL_MIN: i8 = 15;
+    const TREE_INCREASE_INTERVAL_MAX: i8 = 50;
     const FIRE_EXIST_TIME: i8 = 1;
-    const TAKE_FIRE_RATIO: f64 = 0.05;
+    const TAKE_FIRE_RATIO: f64 = 0.01;
 }
 
 impl<T: TreeDrawable> TreeSimulator<T> {
@@ -52,7 +52,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     pub fn run(&mut self) {
         loop {
             self.update();
-            sleep(Duration::from_millis(500));
+            sleep(Duration::from_millis(100));
         }
     }
 
