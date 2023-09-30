@@ -20,15 +20,16 @@ impl TreeDrawable for Terminal {
             let mut str: String = String::from("");
             for chara in row {
                 match chara {
-                    TreeType::None => {}
+                    TreeType::None => {
+                        str += " ";
+                    }
                     TreeType::Tree => {
-                        str += "△";
+                        str += "A";
                     }
                     TreeType::Fire => {
                         str += "*";
                     }
                 }
-                //str += &*chara.to_string();
             }
             println!("{}\r", str);
         }
