@@ -1,30 +1,40 @@
 use std::thread::sleep;
 use std::time::Duration;
+use rand::Rng;
 use crate::tree_drawable::TreeDrawable;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum TreeType {
     None,
     Tree,
     Fire,
 }
 
+struct Pos {
+    x: usize,
+    y: usize,
+}
+
 pub struct TreeSimulator<T: TreeDrawable> {
     trees: Vec<Vec<TreeType>>,
     tree_drawable: T,
+    to_grow_count: u8,
 }
 
 impl<T: TreeDrawable> TreeSimulator<T> {
+    const TREE_GROW_INTERVAL: u8 = 3;
+
     pub fn default(tree_drawable: T) -> Self {
         let draw_size = tree_drawable.size();
         let column_count = draw_size.width as usize;
         let row_count = draw_size.height as usize;
 
         println!("initialize trees data [{}][{}]", column_count, row_count);
-        let mut trees: Vec<Vec<TreeType>> = vec![vec![TreeType::None; column_count]; row_count];
+        let trees: Vec<Vec<TreeType>> = vec![vec![TreeType::None; column_count]; row_count];
         Self {
             trees,
             tree_drawable,
+            to_grow_count: Self::TREE_GROW_INTERVAL,
         }
     }
     pub fn run(&mut self) {
@@ -35,13 +45,37 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
 
     fn update(&mut self) {
-        for row in &mut self.trees {
-            for ch in row {
-                //*ch = (*ch + 1) % 10;
+        self.update_trees();
+        self.tree_drawable.draw_tree(&self.trees);
+    }
+
+    fn update_trees(&mut self) {
+        self.to_grow_count -= 1;
+        if self.to_grow_count > 0 {
+            return;
+        }
+
+        self.to_grow_count = Self::TREE_GROW_INTERVAL;
+
+        let mut nones: Vec<Pos> = Vec::new();
+        for row_index in 0..self.trees.len() {
+            for (column_index, element) in self.trees[row_index].iter().enumerate() {
+                if *element == TreeType::None {
+                    nones.push(
+                        Pos {
+                            x: column_index,
+                            y: row_index,
+                        }
+                    );
+                }
             }
         }
 
-        self.tree_drawable.draw_tree(&self.trees);
+        let rand
+            = rand::thread_rng().gen_range(0..nones.len());
+        let pos
+            = Pos{ x: nones[rand].x, y: nones[rand].y };
+        self.trees[pos.y][pos.x] = TreeType::Tree;
     }
 }
 
@@ -80,5 +114,39 @@ mod tests {
         assert_eq!(simulator.trees[0].len(), 3);
         // height
         assert_eq!(simulator.trees.len(), 5);
+    }
+    #[test]
+    fn if_update_few_time_then_one_tree_grow() {
+        let drawable = MockDrawable::default(
+            Size { width: 10, height: 10, }
+        );
+        let mut sim = TreeSimulator::default(drawable);
+
+        // first, there is no tree
+        let mut tree_count = 0;
+        for row in &sim.trees {
+            for elem in row {
+                if *elem == TreeType::Tree {
+                    tree_count += 1;
+                }
+            }
+        }
+        assert_eq!(tree_count, 0);
+
+        // update few times
+        sim.update();
+        sim.update();
+        sim.update();
+
+        // then one tree grown
+        let mut tree_count = 0;
+        for row in &sim.trees {
+            for elem in row {
+                if *elem == TreeType::Tree {
+                    tree_count += 1;
+                }
+            }
+        }
+        assert_eq!(tree_count, 1);
     }
 }
