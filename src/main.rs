@@ -1,3 +1,5 @@
+extern crate core;
+
 mod tree_simulator;
 mod terminal;
 mod tree_drawable;
