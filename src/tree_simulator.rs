@@ -26,7 +26,7 @@ pub struct TreeSimulator<T: TreeDrawable> {
 // release parameters
 #[cfg(not(test))]
 impl<T: TreeDrawable> TreeSimulator<T> {
-    const TREE_GROW_INTERVAL: u8 = 25;
+    const TREE_GROW_INTERVAL: u8 = 30;
     const TREE_INCREASE_INTERVAL_MIN: i8 = 15;
     const TREE_INCREASE_INTERVAL_MAX: i8 = 50;
     const FIRE_EXIST_TIME: i8 = 1;
@@ -51,10 +51,29 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
 
     pub fn run(&mut self) {
+        self.initialize_trees(1);
+
         loop {
             self.update();
             sleep(Duration::from_millis(100));
         }
+    }
+
+    fn initialize_trees(&mut self, initial_tree_num: u8) {
+        if initial_tree_num == 0 {
+            self.tree_drawable.draw_tree(&self.trees);
+            return;
+        }
+
+        let all_positions = self.search_all_positions();
+        let none_positions = &all_positions[&TreeType::None];
+
+        for _num in 0..initial_tree_num {
+            let rand = rand::thread_rng().gen_range(0..none_positions.len());
+            self.set_tree_type(&none_positions[rand], TreeType::Tree);
+        }
+
+        self.tree_drawable.draw_tree(&self.trees);
     }
 
     fn update(&mut self) {
