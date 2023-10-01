@@ -1,4 +1,5 @@
 use std::io::{self};
+use termion::{color};
 use crate::tree_drawable::{Size, TreeDrawable};
 use crate::tree_simulator::TreeType;
 
@@ -11,6 +12,7 @@ impl TreeDrawable for Terminal {
         &self.size
     }
     fn draw_tree(&self, trees: &Vec<Vec<TreeType>>) {
+        print!("{}", color::Fg(color::Green));
         Self::cursor_hide();
         Self::cursor_position(1, 1);
 
@@ -27,12 +29,13 @@ impl TreeDrawable for Terminal {
                         str += "A";
                     }
                     TreeType::Fire => {
-                        str += "*";
+                        str += format!("{}*{}", color::Fg(color::Red), color::Fg(color::Green)).as_ref();
                     }
                 }
             }
             println!("{}\r", str);
         }
+        print!("{}", color::Fg(color::Reset));
     }
 }
 
