@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::thread::sleep;
 use std::time::Duration;
 use rand::{random, Rng};
 use crate::tree_drawable::TreeDrawable;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Hash, Eq, PartialEq, Debug)]
 pub enum TreeType {
     None,
     Tree,
@@ -57,17 +58,22 @@ impl<T: TreeDrawable> TreeSimulator<T> {
     }
 
     fn update(&mut self) {
-        let is_increase = self.update_increase_trees();
-        let is_grown = self.update_grow_trees();
-        let is_spread = self.update_fire_spread();
-        let is_fire = self.take_fire_at_random();
+        let all_positions = self.search_all_positions();
+        let none_positions = &all_positions[&TreeType::None];
+        let tree_positions = &all_positions[&TreeType::Tree];
+        let fire_positions = &all_positions[&TreeType::Fire];
+
+        let is_increase = self.update_increase_trees(tree_positions);
+        let is_grown = self.update_grow_trees(none_positions);
+        let is_spread = self.update_fire_spread(fire_positions);
+        let is_fire = self.take_fire_at_random(tree_positions);
 
         if is_increase || is_grown || is_spread || is_fire {
             self.tree_drawable.draw_tree(&self.trees);
         }
     }
 
-    fn update_grow_trees(&mut self) -> bool {
+    fn update_grow_trees(&mut self, none_positions: &Vec<Pos>) -> bool {
         self.to_grow_count -= 1;
         if self.to_grow_count > 0 {
             return false;
@@ -75,16 +81,14 @@ impl<T: TreeDrawable> TreeSimulator<T> {
 
         self.to_grow_count = Self::TREE_GROW_INTERVAL;
 
-        let nones: Vec<Pos> = self.search_positions(TreeType::None);
         let rand
-            = rand::thread_rng().gen_range(0..nones.len());
-        self.set_tree_type(&nones[rand], TreeType::Tree);
+            = rand::thread_rng().gen_range(0..none_positions.len());
+        self.set_tree_type(&none_positions[rand], TreeType::Tree);
         return true;
     }
 
-    fn update_increase_trees(&mut self) -> bool {
+    fn update_increase_trees(&mut self, tree_positions: &Vec<Pos>) -> bool {
         let mut is_dirty = false;
-        let tree_positions = self.search_positions(TreeType::Tree);
         for pos in tree_positions {
             if let Some(row) = self.increase_counts.get_mut(pos.y) {
                 if let Some(increase_count) = row.get_mut(pos.x) {
@@ -103,26 +107,24 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         is_dirty
     }
 
-    fn take_fire_at_random(&mut self) -> bool {
+    fn take_fire_at_random(&mut self, tree_positions: &Vec<Pos>) -> bool {
         let random: f64 = random();
         if random > Self::TAKE_FIRE_RATIO {
             return false;
         }
 
-        let trees = self.search_positions(TreeType::Tree);
-        if trees.len() == 0 {
+        if tree_positions.len() == 0 {
             return false;
         }
 
-        let rnd_idx = rand::thread_rng().gen_range(0..trees.len());
-        self.set_tree_type(&trees[rnd_idx], TreeType::Fire);
+        let rnd_idx = rand::thread_rng().gen_range(0..tree_positions.len());
+        self.set_tree_type(&tree_positions[rnd_idx], TreeType::Fire);
         return true;
     }
 
-    fn update_fire_spread(&mut self) -> bool {
+    fn update_fire_spread(&mut self, fire_positions: &Vec<Pos>) -> bool {
         let mut is_dirty = false;
-        let fires = self.search_positions(TreeType::Fire);
-        for pos in fires {
+        for pos in fire_positions {
             let count = self.increase_counts[pos.y][pos.x];
             if count == Self::FIRE_EXIST_TIME {
                 let trees = self.search_around_tree_pos(&pos);
@@ -144,7 +146,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         let height = self.trees.len();
         let width = self.trees[0].len();
 
-        let offset :i32 = random();
+        let offset: i32 = random();
         for check_num in 0..4 {
             let num = (check_num + offset) % 4;
             match num {
@@ -217,21 +219,20 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         tree_pos
     }
 
-    fn search_positions(&self, target_type: TreeType) -> Vec<Pos> {
-        let mut positions: Vec<Pos> = Vec::new();
+    fn search_all_positions(&self) -> HashMap<TreeType, Vec<Pos>> {
+        let mut tree_positions: HashMap<TreeType, Vec<Pos>> = HashMap::new();
+        tree_positions.insert(TreeType::None, Vec::new());
+        tree_positions.insert(TreeType::Tree, Vec::new());
+        tree_positions.insert(TreeType::Fire, Vec::new());
+
         for row_index in 0..self.trees.len() {
             for (column_index, element) in self.trees[row_index].iter().enumerate() {
-                if *element == target_type {
-                    positions.push(
-                        Pos {
-                            x: column_index,
-                            y: row_index,
-                        }
-                    );
-                }
+                let pos = Pos { x: column_index, y: row_index };
+                let positions = tree_positions.get_mut(element).unwrap();
+                positions.push(pos);
             }
         }
-        positions
+        tree_positions
     }
 
     fn set_tree_type(&mut self, pos: &Pos, tree_type: TreeType) {
@@ -270,6 +271,23 @@ impl<T: TreeDrawable> TreeSimulator<T> {
 
     fn get_tree_type(&self, pos: &Pos) -> &TreeType {
         &self.trees[pos.y][pos.x]
+    }
+
+    fn search_positions(&self, target_type: TreeType) -> Vec<Pos> {
+        let mut positions: Vec<Pos> = Vec::new();
+        for row_index in 0..self.trees.len() {
+            for (column_index, element) in self.trees[row_index].iter().enumerate() {
+                if *element == target_type {
+                    positions.push(
+                        Pos {
+                            x: column_index,
+                            y: row_index,
+                        }
+                    );
+                }
+            }
+        }
+        positions
     }
 }
 
@@ -413,7 +431,9 @@ mod tests {
         sim.set_tree_type(&Pos { x: 4, y: 3 }, TreeType::Tree);
         sim.set_tree_type(&Pos { x: 5, y: 3 }, TreeType::Tree);
 
-        sim.update_fire_spread();
+        let all_positions = sim.search_all_positions();
+        let fire_positions = &all_positions[&TreeType::Fire];
+        sim.update_fire_spread(fire_positions);
 
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 2 }), TreeType::Fire);
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 3 }), TreeType::Fire);
@@ -425,7 +445,9 @@ mod tests {
         assert_eq!(*sim.get_tree_type(&Pos { x: 4, y: 3 }), TreeType::Fire);
         assert_eq!(*sim.get_tree_type(&Pos { x: 5, y: 3 }), TreeType::Tree);
 
-        sim.update_fire_spread();
+        let all_positions = sim.search_all_positions();
+        let fire_positions = &all_positions[&TreeType::Fire];
+        sim.update_fire_spread(fire_positions);
 
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 2 }), TreeType::Fire);
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 3 }), TreeType::None);
@@ -437,7 +459,9 @@ mod tests {
         assert_eq!(*sim.get_tree_type(&Pos { x: 4, y: 3 }), TreeType::Fire);
         assert_eq!(*sim.get_tree_type(&Pos { x: 5, y: 3 }), TreeType::Fire);
 
-        sim.update_fire_spread();
+        let all_positions = sim.search_all_positions();
+        let fire_positions = &all_positions[&TreeType::Fire];
+        sim.update_fire_spread(fire_positions);
 
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 2 }), TreeType::None);
         assert_eq!(*sim.get_tree_type(&Pos { x: 3, y: 3 }), TreeType::None);
