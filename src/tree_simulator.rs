@@ -45,7 +45,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
             trees,
             increase_counts,
             tree_drawable,
-            to_grow_count: Self::TREE_GROW_INTERVAL / 3,
+            to_grow_count: Self::TREE_GROW_INTERVAL,
         }
     }
 
