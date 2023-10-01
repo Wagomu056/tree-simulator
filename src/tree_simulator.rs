@@ -146,7 +146,7 @@ impl<T: TreeDrawable> TreeSimulator<T> {
         let height = self.trees.len();
         let width = self.trees[0].len();
 
-        let offset: i32 = random();
+        let offset: u32 = random();
         for check_num in 0..4 {
             let num = (check_num + offset) % 4;
             match num {
