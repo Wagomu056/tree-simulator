@@ -26,7 +26,7 @@ pub struct TreeSimulator<T: TreeDrawable> {
 // release parameters
 #[cfg(not(test))]
 impl<T: TreeDrawable> TreeSimulator<T> {
-    const TREE_GROW_INTERVAL: u8 = 30;
+    const TREE_GROW_INTERVAL: u8 = 40;
     const TREE_INCREASE_INTERVAL_MIN: i8 = 15;
     const TREE_INCREASE_INTERVAL_MAX: i8 = 50;
     const FIRE_EXIST_TIME: i8 = 1;
