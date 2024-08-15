@@ -100,8 +100,13 @@ impl<T: TreeDrawable> TreeSimulator<T> {
 
         self.to_grow_count = Self::TREE_GROW_INTERVAL;
 
+        let none_position_num = none_positions.len();
+        if none_position_num == 0 {
+            return false;
+        }
+
         let rand
-            = rand::thread_rng().gen_range(0..none_positions.len());
+            = rand::thread_rng().gen_range(0..none_position_num);
         self.set_tree_type(&none_positions[rand], TreeType::Tree);
         return true;
     }
